@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="comtrue.homework.persistence.MemberMapper">
+	<select id="Time" resultType="string"><!-- 받고싶은것 -->
+		select now()
+	</select>
+	<insert id="insert">
+		insert into tbl_member(name,phone,
+		level,
+		email)
+		values(#{name},#{phone},#{level},#{email});
+	</insert>
+	
+    <update id="update">
+    	update tbl_member set 
+    	<include refid="uptsql"></include>
+    	where num = #{dbnum};
+     </update>
+ 
+	<select id="selecteone" resultType="comtrue.homework.domain.MemberVO">
+		select num ,name,level,phone,
+		email from tbl_member where num = #{dbnum};
+	</select>
+	
+	<select id="totalcnt" resultType="int">
+		select count(*)from tbl_member;
+	</select>
+
+	<select id="selectelist" resultType="comtrue.homework.domain.MemberVO">
+			select LPAD(num,3,'0') num,name,level,phone,email from tbl_member order by name  limit #{page},10 ;
+	</select>
+	<select id="all" resultType="comtrue.homework.domain.MemberVO">
+			select LPAD(num,3,'0') num,name,level,phone,email from tbl_member order by name;
+	</select>
+	
+	<select id="searchlist" resultType="comtrue.homework.domain.MemberVO">
+			select LPAD(num,3,'0') num,name,level,phone,email from tbl_member 
+  			<include refid="searchsql"></include>
+			order by name 
+			limit #{page},10 ;
+	</select>
+	
+	<select id="searchcnt" resultType="int">
+		select count(*) from tbl_member
+		<include refid="searchsql"></include>;
+	</select>
+	
+	<delete id="delete">
+		delete from tbl_member where num = #{dbnum};
+	</delete>
+		
+	<sql id="searchsql">
+	 <if test="searchtype != null">
+	   where 1=1 
+			<if test="searchtype == 'num'">and  num = #{dbnum} </if>
+			<if test="searchtype == 'level'">and  level like #{dbkeyword} </if>
+			<if test="searchtype == 'email'">and  email like #{dbkeyword} </if>
+			<if test="searchtype == 'phone'">and  phone like #{dbkeyword} </if>
+			<if test="searchtype == 'name'">and  name like #{dbkeyword} </if>
+	 </if>
+	</sql>
+	 
+	<sql id="uptsql">
+		<if test="updatenum != 0">
+    	num = #{updatenum}
+    	</if>
+    	<if test="updatenum == 0">
+    	num = #{dbnum}
+    	</if>
+    	<if test="name != null">
+    	 ,name= #{name}
+    	</if>
+    	<if test="email != null">
+    	  ,email= #{email}
+    	</if>
+    	<if test="phone != null">
+    	  ,phone= #{phone}
+    	</if>
+    	<if test="level != null">
+    	  ,level= #{level}
+    	</if>
+    </sql>
+</mapper>

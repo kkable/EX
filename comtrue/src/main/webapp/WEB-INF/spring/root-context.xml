@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd">
+
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"></property>
+		<property name="url"
+			value="jdbc:log4jdbc:mysql://localhost:3306/bumeboaard"></property>
+		<property name="username" value="client"></property>
+		<property name="password" value="docsuli90"></property>
+	</bean>
+
+
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="configLocation" value="classpath:mybatis-config.xml"></property>
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="mapperLocations" value="classpath:mappers/**/*.xml"></property>
+	</bean>
+
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="sqlSessionFactory"></constructor-arg>
+	</bean>
+
+	<bean id="MailService" class="comtrue.homework.service.MailService"></bean>
+
+	
+	<!-- 정해진시간 -->
+	<bean name="complexJobDetail"
+		class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+		<property name="jobClass" value="comtrue.homework.service.MailBean" />
+		<property name="jobDataMap">
+			<map>
+				<entry key="MailService" value-ref="MailService" />
+			</map>
+		</property>
+		<property name="durability" value="true" />
+	</bean>
+
+	<bean id="cronTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="complexJobDetail" />
+		<property name="cronExpression" value="0 00 10 ? * MON-SUN" />
+	</bean>
+
+
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="jobDetails">
+			<list>
+				<ref bean="complexJobDetail" />
+			</list>
+		</property>
+
+		<property name="triggers">
+			<list>
+				<ref bean="cronTrigger" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="smtp.gmail.com" />
+		<property name="port" value="587" />
+		<property name="username" value="docsuli90@gmail.com" />
+		<property name="password" value="pyb1010114" />
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.smtp.starttls.enable">true</prop>
+			</props>
+		</property>
+	</bean>
+
+
+	<context:component-scan base-package="comtrue.homework.persistence"></context:component-scan>
+	<context:component-scan base-package="comtrue.homework.service"></context:component-scan>
+</beans>
